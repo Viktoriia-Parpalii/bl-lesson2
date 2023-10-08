@@ -2,6 +2,7 @@ import { Component } from 'react';
 
 import * as ImageService from 'service/image-service';
 import { Button, SearchForm, Grid, GridItem, Text, CardItem } from 'components';
+import { MyModal } from 'components/MyModal/MyModal';
 
 export class Gallery extends Component {
   state = {
@@ -12,6 +13,9 @@ export class Gallery extends Component {
     error: null,
     isEmpty: false,
     isVisible: false,
+    showModal: false,
+    largeImg: '',
+    alt: '',
   };
 
   componentDidUpdate(_, prevState) {
@@ -58,8 +62,20 @@ export class Gallery extends Component {
     });
   };
 
+  onLoadMore = () => {
+    this.setState(prevState => ({page:prevState.page + 1}))
+  }
+
+  onOpenModal =(largeImg, alt) => {
+    this.setState({showModal:true, largeImg, alt})
+  }
+
+  onCloseModal = () => {
+       this.setState({showModal:false, largeImg:'', alt:''})
+ 
+  }
   render() {
-    const { images, isVisible, loading, isEmpty, error } = this.state;
+    const { images, isVisible, loading, isEmpty, error, showModal, largeImg, alt } = this.state;
     return (
       <>
         <SearchForm onSubmit={this.onHandleSubmit} />
@@ -72,13 +88,17 @@ export class Gallery extends Component {
         <Grid>
           {images.length > 0 &&
             images.map(({ avg_color, id, alt, src }) => (
-              <GridItem key={id}>
+              <GridItem onClick={()=>this.onOpenModal(src.large, alt)}key={id}>
                 <CardItem color={avg_color}>
                   <img src={src.large} alt={alt} />
                 </CardItem>
               </GridItem>
             ))}
         </Grid>
+{isVisible && <Button onClick={this.onLoadMore} disabled = {loading}>
+{loading ? 'Loading...' : "Load more..."}  
+</Button>}
+<MyModal modalIsOpen={showModal} closeModal={this.onCloseModal} largeImg={largeImg} alt={alt}/>
       </>
     );
   }
